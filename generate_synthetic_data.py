@@ -48,16 +48,14 @@ for i in range(1, feature_groups["Engineered"] + 1):
 for i in range(1, feature_groups["Noise"] + 1):
     df[f'noise_feature_{i}'] = np.random.normal(0, 1, n_users)
 
-columns = ['user_id', 'churned'] + [col for col in df.columns if col not in ['user_id', 'churned']]
-df = df[columns]
-
-# Mapping generated columns to real feature names from the data dictionary
-feature_names = [
+# Assign column names first, then drop unwanted features, add new text features, and finally reorder columns to match the new structure.
+# Update columns order to reflect removals and additions
+columns = [
     'user_id', 'churned',
     'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
-    'coupon_usage_rate', 'refund_count', 'items_per_order', 'total_spend', 'reorder_rate', 'cash_on_delivery_pct',
-    'app_opens_per_day', 'session_duration_avg', 'push_notifications_click_rate', 'days_active_last_30',
-    'wishlist_items_count', 'pages_visited_per_session', 'search_frequency', 'product_reviews_written',
+    'coupon_usage_rate', 'refund_count', 'items_per_order', 'total_spend', 'reorder_rate',
+    'app_opens_per_day', 'session_duration_avg', 'days_active_last_30',
+    'pages_visited_per_session', 'search_frequency', 'product_reviews_written',
     'payment_failures_count', 'support_chats_initiated', 'video_content_viewed', 'feature_usage_score',
     'age', 'gender', 'income_bracket', 'tenure_months', 'city_tier', 'household_size', 'marital_status',
     'has_children', 'education_level', 'employment_status', 'owns_vehicle',
@@ -66,11 +64,151 @@ feature_names = [
     'active_night_user', 'long_gap_before_churn', 'avg_spend_per_minute', 'value_per_order',
     'engagement_score', 'loyalty_score', 'discount_dependency', 'churn_risk_index', 'social_sharing_index',
     'mobile_vs_web_ratio', 'complexity_of_orders', 'return_rate_composite',
-    'noise_1', 'noise_2', 'noise_3', 'noise_4', 'noise_5'
+    'noise_1', 'noise_2', 'noise_3', 'noise_4',
+    'area_locality', 'payment_method_preference', 'preferred_delivery_slot', 'loyalty_tier'
 ]
+df.columns = columns
+
+# Remove unwanted features only if they exist
+features_to_remove = [
+    'cash_on_delivery_pct', 'wishlist_items_count', 'push_notifications_click_rate', 'noise_5'
+]
+existing_to_remove = [col for col in features_to_remove if col in df.columns]
+if existing_to_remove:
+    df = df.drop(columns=existing_to_remove)
+
+# Add new text features
+localities = ["Whitefield", "Indiranagar", "Koramangala", "HSR Layout", "Jayanagar", "Malleshwaram"]
+df["area_locality"] = np.random.choice(localities, size=n_users)
+df['payment_method_preference'] = np.random.choice(['UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Cash'], size=n_users)
+df['preferred_delivery_slot'] = np.random.choice(['Morning', 'Afternoon', 'Evening', 'Night'], size=n_users)
+df['loyalty_tier'] = np.random.choice(['Membership', 'No Membership'], size=n_users)
+
+# Reorder columns (only those that exist)
+columns = [
+    'user_id', 'churned',
+    'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
+    'coupon_usage_rate', 'refund_count', 'items_per_order', 'total_spend', 'reorder_rate',
+    'app_opens_per_day', 'session_duration_avg', 'days_active_last_30',
+    'pages_visited_per_session', 'search_frequency', 'product_reviews_written',
+    'payment_failures_count', 'support_chats_initiated', 'video_content_viewed', 'feature_usage_score',
+    'age', 'gender', 'income_bracket', 'tenure_months', 'city_tier', 'household_size', 'marital_status',
+    'has_children', 'education_level', 'employment_status', 'owns_vehicle',
+    'avg_time_between_orders', 'days_since_account_creation', 'peak_order_hour', 'weekend_order_ratio',
+    'holiday_purchase_ratio', 'first_purchase_time', 'last_app_open_hour', 'last_login_days_ago',
+    'active_night_user', 'long_gap_before_churn', 'avg_spend_per_minute', 'value_per_order',
+    'engagement_score', 'loyalty_score', 'discount_dependency', 'churn_risk_index', 'social_sharing_index',
+    'mobile_vs_web_ratio', 'complexity_of_orders', 'return_rate_composite',
+    'noise_1', 'noise_2', 'noise_3', 'noise_4',
+    'area_locality', 'payment_method_preference', 'preferred_delivery_slot', 'loyalty_tier'
+]
+df = df[[col for col in columns if col in df.columns]]
+
+# Mapping generated columns to real feature names from the data dictionary
+feature_names = columns
 
 df.columns = feature_names
 
 df.to_excel("synthetic_churn_data.xlsx", index=False)
 print("Excel file 'synthetic_churn_data.xlsx' created!")
 print(" Shape of dataset:", df.shape)
+
+# --- Summary Statistics Generation ---
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import skew, kurtosis, mode
+
+summary = []
+for col in df.columns:
+    col_data = df[col]
+    col_type = 'categorical' if col_data.dtype == 'object' or col_data.nunique() < 10 else 'continuous'
+    stats = {'feature': col, 'type': col_type}
+    if col_type == 'continuous':
+        stats['mean'] = col_data.mean()
+        stats['median'] = col_data.median()
+        m = mode(col_data, nan_policy='omit')
+        stats['mode'] = m.mode[0] if hasattr(m.mode, '__len__') and len(m.mode) > 0 else None
+        stats['std'] = col_data.std()
+        stats['q1'] = col_data.quantile(0.25)
+        stats['q2'] = col_data.quantile(0.5)
+        stats['q3'] = col_data.quantile(0.75)
+        stats['q4'] = col_data.quantile(1.0)
+        stats['p5'] = col_data.quantile(0.05)
+        stats['p95'] = col_data.quantile(0.95)
+        stats['skewness'] = skew(col_data.dropna()) if col_data.dropna().size > 0 else None
+        stats['kurtosis'] = kurtosis(col_data.dropna()) if col_data.dropna().size > 0 else None
+        stats['missing'] = col_data.isnull().sum()
+        # Directional plotting with churn
+        plt.figure(figsize=(6,3))
+        sns.boxplot(x=df['churned'], y=col_data)
+        plt.title(f'{col} vs Churned')
+        plt.xlabel('Churned')
+        plt.ylabel(col)
+        plt.tight_layout()
+        plt.savefig(f'stats_{col}_vs_churned.png')
+        plt.close()
+    else:
+        m = col_data.mode()
+        stats['mean'] = None
+        stats['median'] = None
+        stats['mode'] = m.iloc[0] if not m.empty else None
+        stats['std'] = None
+        stats['q1'] = None
+        stats['q2'] = None
+        stats['q3'] = None
+        stats['q4'] = None
+        stats['p5'] = None
+        stats['p95'] = None
+        stats['skewness'] = None
+        stats['kurtosis'] = None
+        stats['unique'] = col_data.nunique()
+        stats['missing'] = col_data.isnull().sum()
+    summary.append(stats)
+
+summary_df = pd.DataFrame(summary)
+# Reorder columns: mean, median, mode
+cols = summary_df.columns.tolist()
+for colname in ['mean', 'median', 'mode']:
+    cols.remove(colname)
+summary_df = summary_df[['feature', 'type', 'mean', 'median', 'mode'] + cols[2:]]
+# Remove the first two rows
+summary_df = summary_df.iloc[2:].reset_index(drop=True)
+summary_df.to_excel('feature_summary_statistics.xlsx', index=False)
+print('Summary statistics saved to feature_summary_statistics.xlsx')
+
+# --- Feature Exploration Utility ---
+def explore_feature(feature_name):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    if feature_name not in df.columns:
+        print(f"Feature '{feature_name}' not found in DataFrame.")
+        return
+    col_data = df[feature_name]
+    print(f"\nSummary statistics for '{feature_name}':")
+    print(col_data.describe())
+    if col_data.dtype != 'object':
+        print("Skewness:", col_data.skew())
+        print("Kurtosis:", col_data.kurtosis())
+    print("Missing:", col_data.isnull().sum())
+    # Plot
+    if feature_name != 'churned':
+        plt.figure(figsize=(6,3))
+        try:
+            sns.boxplot(x=df['churned'], y=col_data)
+            plt.title(f'{feature_name} vs Churned')
+            plt.xlabel('Churned')
+            plt.ylabel(feature_name)
+            plt.tight_layout()
+            plt.show()
+        except Exception as e:
+            print(f"Could not plot {feature_name}: {e}")
+    else:
+        print("No plot for target variable itself.")
+
+# Example usage:
+# explore_feature(df.columns[0])  # or replace with any feature name
+# explore_feature('avg_order_value')
+
+# Example: Accessing the feature data dictionary for reference
+feature_dict = pd.read_csv('feature_data_dictionary.csv')
+# Now you can use feature_dict as a DataFrame for documentation, mapping, or validation
