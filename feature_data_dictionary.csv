@@ -1,0 +1,63 @@
+Feature,Description
+user_id,Unique user identifier
+churned,Whether the user has churned (1) or not (0)
+avg_order_value,Average value of orders placed by the user
+total_orders,Total number of orders made
+days_since_last_order,Days since the last order was placed
+monthly_spend,Average monthly spend on the app
+order_frequency,Frequency of ordering (orders per month)
+cart_abandon_rate,Rate of cart abandonment
+coupon_usage_rate,Rate at which the user uses coupons
+refund_count,Number of refunds requested
+items_per_order,Average number of items per order
+total_spend,Total spend on the app
+reorder_rate,Rate at which users reorder the same items
+cash_on_delivery_pct,Percentage of orders using cash on delivery
+app_opens_per_day,Average number of app opens per day
+session_duration_avg,Average session duration (minutes)
+push_notifications_click_rate,Click rate on push notifications
+days_active_last_30,Number of active days in the last 30 days
+wishlist_items_count,Number of items in wishlist
+pages_visited_per_session,Average number of pages visited per session
+search_frequency,How frequently the search function is used
+product_reviews_written,Number of product reviews submitted
+payment_failures_count,Number of payment failures encountered
+support_chats_initiated,Number of times support was contacted
+video_content_viewed,Amount of video content viewed in app
+feature_usage_score,Aggregated score for advanced feature usage
+age,User's age in years
+gender,"User's gender (Male, Female, Other)"
+income_bracket,Income bracket of the user
+tenure_months,How long the user has been registered (months)
+city_tier,Tier of the city the user resides in
+household_size,Number of members in user's household
+marital_status,"Marital status (Single, Married, etc.)"
+has_children,Whether the user has children (Yes/No)
+education_level,Highest level of education completed
+employment_status,Current employment status
+owns_vehicle,Whether the user owns a vehicle
+avg_time_between_orders,Average time gap between two orders (days)
+days_since_account_creation,Days since the user account was created
+peak_order_hour,Hour of the day when orders are most frequent
+weekend_order_ratio,Ratio of orders made on weekends
+holiday_purchase_ratio,Ratio of purchases made during holidays
+first_purchase_time,Time of day when first purchase was made
+last_app_open_hour,Hour of day when app was last opened
+last_login_days_ago,Days since last login
+active_night_user,Whether the user is active at night (Yes/No)
+long_gap_before_churn,Long inactivity gap before churn (days)
+avg_spend_per_minute,Average spend per minute of app usage
+value_per_order,Value derived per order
+engagement_score,Composite score combining multiple usage stats
+loyalty_score,Score indicating loyalty based on historical patterns
+discount_dependency,Dependency on discounts and offers
+churn_risk_index,Engineered churn risk score
+social_sharing_index,How much user shares products socially
+mobile_vs_web_ratio,Ratio of mobile to web usage
+complexity_of_orders,Diversity and volume of items per order
+return_rate_composite,Engineered feature representing return behaviour
+noise_1,Random noise feature (for model testing)
+noise_2,Random noise feature (for model testing)
+noise_3,Random noise feature (for model testing)
+noise_4,Random noise feature (for model testing)
+noise_5,Random noise feature (for model testing)
