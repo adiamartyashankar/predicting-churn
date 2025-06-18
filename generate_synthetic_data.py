@@ -51,6 +51,26 @@ for i in range(1, feature_groups["Noise"] + 1):
 columns = ['user_id', 'churned'] + [col for col in df.columns if col not in ['user_id', 'churned']]
 df = df[columns]
 
+# Mapping generated columns to real feature names from the data dictionary
+feature_names = [
+    'user_id', 'churned',
+    'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
+    'coupon_usage_rate', 'refund_count', 'items_per_order', 'total_spend', 'reorder_rate', 'cash_on_delivery_pct',
+    'app_opens_per_day', 'session_duration_avg', 'push_notifications_click_rate', 'days_active_last_30',
+    'wishlist_items_count', 'pages_visited_per_session', 'search_frequency', 'product_reviews_written',
+    'payment_failures_count', 'support_chats_initiated', 'video_content_viewed', 'feature_usage_score',
+    'age', 'gender', 'income_bracket', 'tenure_months', 'city_tier', 'household_size', 'marital_status',
+    'has_children', 'education_level', 'employment_status', 'owns_vehicle',
+    'avg_time_between_orders', 'days_since_account_creation', 'peak_order_hour', 'weekend_order_ratio',
+    'holiday_purchase_ratio', 'first_purchase_time', 'last_app_open_hour', 'last_login_days_ago',
+    'active_night_user', 'long_gap_before_churn', 'avg_spend_per_minute', 'value_per_order',
+    'engagement_score', 'loyalty_score', 'discount_dependency', 'churn_risk_index', 'social_sharing_index',
+    'mobile_vs_web_ratio', 'complexity_of_orders', 'return_rate_composite',
+    'noise_1', 'noise_2', 'noise_3', 'noise_4', 'noise_5'
+]
+
+df.columns = feature_names
+
 df.to_excel("synthetic_churn_data.xlsx", index=False)
 print("Excel file 'synthetic_churn_data.xlsx' created!")
 print(" Shape of dataset:", df.shape)
