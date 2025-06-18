@@ -2,17 +2,17 @@ import numpy as np
 import pandas as pd
 import random
 
-# Configuration
+#
 np.random.seed(42)
 random.seed(42)
 n_users = 5000
 
-# Step 1: Create base DataFrame
+#  Creating base dataframe
 df = pd.DataFrame()
 df['user_id'] = ['U' + str(i).zfill(5) for i in range(n_users)]
 df['churned'] = np.random.choice([0, 1], size=n_users, p=[0.8, 0.2])  # 20% churn rate
 
-# Step 2: Define number of features
+# Feature definition
 feature_groups = {
     "Transactions": 12,
     "Usage": 12,
@@ -22,7 +22,7 @@ feature_groups = {
     "Noise": 5
 }
 
-# Step 3: Generate Features
+
 
 # Transactions (e.g., order_count, avg_order_value)
 for i in range(1, feature_groups["Transactions"] + 1):
