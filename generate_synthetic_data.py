@@ -48,8 +48,7 @@ for i in range(1, feature_groups["Engineered"] + 1):
 for i in range(1, feature_groups["Noise"] + 1):
     df[f'noise_feature_{i}'] = np.random.normal(0, 1, n_users)
 
-# Assign column names first, then drop unwanted features, add new text features, and finally reorder columns to match the new structure.
-# Update columns order to reflect removals and additions
+
 columns = [
     'user_id', 'churned',
     'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
@@ -69,7 +68,7 @@ columns = [
 ]
 df.columns = columns
 
-# Remove unwanted features only if they exist
+
 features_to_remove = [
     'cash_on_delivery_pct', 'wishlist_items_count', 'push_notifications_click_rate', 'noise_5'
 ]
@@ -77,14 +76,14 @@ existing_to_remove = [col for col in features_to_remove if col in df.columns]
 if existing_to_remove:
     df = df.drop(columns=existing_to_remove)
 
-# Add new text features
+
 localities = ["Whitefield", "Indiranagar", "Koramangala", "HSR Layout", "Jayanagar", "Malleshwaram"]
 df["area_locality"] = np.random.choice(localities, size=n_users)
 df['payment_method_preference'] = np.random.choice(['UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Cash'], size=n_users)
 df['preferred_delivery_slot'] = np.random.choice(['Morning', 'Afternoon', 'Evening', 'Night'], size=n_users)
 df['loyalty_tier'] = np.random.choice(['Membership', 'No Membership'], size=n_users)
 
-# Reorder columns (only those that exist)
+
 columns = [
     'user_id', 'churned',
     'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
@@ -104,7 +103,7 @@ columns = [
 ]
 df = df[[col for col in columns if col in df.columns]]
 
-# Mapping generated columns to real feature names from the data dictionary
+
 feature_names = columns
 
 df.columns = feature_names
@@ -166,17 +165,16 @@ for col in df.columns:
     summary.append(stats)
 
 summary_df = pd.DataFrame(summary)
-# Reorder columns: mean, median, mode
+
 cols = summary_df.columns.tolist()
 for colname in ['mean', 'median', 'mode']:
     cols.remove(colname)
 summary_df = summary_df[['feature', 'type', 'mean', 'median', 'mode'] + cols[2:]]
-# Remove the first two rows
+
 summary_df = summary_df.iloc[2:].reset_index(drop=True)
 summary_df.to_excel('feature_summary_statistics.xlsx', index=False)
 print('Summary statistics saved to feature_summary_statistics.xlsx')
 
-# --- Feature Exploration Utility ---
 def explore_feature(feature_name):
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -205,10 +203,6 @@ def explore_feature(feature_name):
     else:
         print("No plot for target variable itself.")
 
-# Example usage:
-# explore_feature(df.columns[0])  # or replace with any feature name
-# explore_feature('avg_order_value')
 
-# Example: Accessing the feature data dictionary for reference
 feature_dict = pd.read_csv('feature_data_dictionary.csv')
-# Now you can use feature_dict as a DataFrame for documentation, mapping, or validation
+
