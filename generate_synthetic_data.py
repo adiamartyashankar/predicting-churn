@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
 import random
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import skew, kurtosis, mode
 
 np.random.seed(42)
 random.seed(42)
-n_users = 5000
+n_users = 25000
 
 df = pd.DataFrame()
 df['user_id'] = ['U' + str(i).zfill(5) for i in range(n_users)]
@@ -48,8 +51,6 @@ for i in range(1, feature_groups["Engineered"] + 1):
 for i in range(1, feature_groups["Noise"] + 1):
     df[f'noise_feature_{i}'] = np.random.normal(0, 1, n_users)
 
-# Assign column names first, then drop unwanted features, add new text features, and finally reorder columns to match the new structure.
-# Update columns order to reflect removals and additions
 columns = [
     'user_id', 'churned',
     'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
@@ -69,7 +70,6 @@ columns = [
 ]
 df.columns = columns
 
-# Remove unwanted features only if they exist
 features_to_remove = [
     'cash_on_delivery_pct', 'wishlist_items_count', 'push_notifications_click_rate', 'noise_5'
 ]
@@ -77,14 +77,12 @@ existing_to_remove = [col for col in features_to_remove if col in df.columns]
 if existing_to_remove:
     df = df.drop(columns=existing_to_remove)
 
-# Add new text features
 localities = ["Whitefield", "Indiranagar", "Koramangala", "HSR Layout", "Jayanagar", "Malleshwaram"]
 df["area_locality"] = np.random.choice(localities, size=n_users)
 df['payment_method_preference'] = np.random.choice(['UPI', 'Credit Card', 'Debit Card', 'Net Banking', 'Cash'], size=n_users)
 df['preferred_delivery_slot'] = np.random.choice(['Morning', 'Afternoon', 'Evening', 'Night'], size=n_users)
 df['loyalty_tier'] = np.random.choice(['Membership', 'No Membership'], size=n_users)
 
-# Reorder columns (only those that exist)
 columns = [
     'user_id', 'churned',
     'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
@@ -104,20 +102,57 @@ columns = [
 ]
 df = df[[col for col in columns if col in df.columns]]
 
-# Mapping generated columns to real feature names from the data dictionary
 feature_names = columns
 
 df.columns = feature_names
 
+
+int_columns = [
+    'days_since_last_order', 'total_orders', 'items_per_order', 'refund_count',
+    'payment_failures_count', 'household_size', 'tenure_months', 'days_active_last_30',
+    'last_login_days_ago', 'days_since_account_creation', 'peak_order_hour', 'last_app_open_hour'
+]
+for col in int_columns:
+    if col in df.columns:
+        df[col] = np.ceil(df[col]).astype(int)
+
+# Make some continuous features have repeated values to ensure mode is not empty
+for col in ['avg_order_value', 'monthly_spend', 'session_duration_avg', 'engagement_score']:
+    if col in df.columns:
+        idx = df.sample(frac=0.2, random_state=42).index
+        df.loc[idx, col] = df.loc[idx, col].round(0)
+
+# Save the main Excel file
 df.to_excel("synthetic_churn_data.xlsx", index=False)
 print("Excel file 'synthetic_churn_data.xlsx' created!")
 print(" Shape of dataset:", df.shape)
 
-# --- Summary Statistics Generation ---
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.stats import skew, kurtosis, mode
+# --- DATA CLEANING SECTION ---
+# Remove duplicate rows (if any)
+df_clean = df.drop_duplicates()
 
+# Handle missing values
+for col in df_clean.columns:
+    if df_clean[col].dtype == 'object':
+        # Fill missing categorical/text with mode
+        mode_val = df_clean[col].mode()
+        fill_val = mode_val.iloc[0] if not mode_val.empty else 'Unknown'
+        df_clean[col] = df_clean[col].fillna(fill_val)
+    else:
+        # Fill missing numeric with median
+        df_clean[col] = df_clean[col].fillna(df_clean[col].median())
+
+# Ensure correct dtypes for integer columns
+for col in int_columns:
+    if col in df_clean.columns:
+        df_clean[col] = df_clean[col].astype(int)
+
+# Save cleaned data
+cleaned_path = 'synthetic_churn_data_cleaned.xlsx'
+df_clean.to_excel(cleaned_path, index=False)
+print(f'Cleaned data saved to {cleaned_path}')
+
+# Generate summary statistics and plots
 summary = []
 for col in df.columns:
     col_data = df[col]
@@ -127,7 +162,7 @@ for col in df.columns:
         stats['mean'] = col_data.mean()
         stats['median'] = col_data.median()
         m = mode(col_data, nan_policy='omit')
-        stats['mode'] = m.mode[0] if hasattr(m.mode, '__len__') and len(m.mode) > 0 else None
+        stats['mode'] = m.mode[0] if hasattr(m.mode, '__len__') and len(m.mode) > 0 else 'No mode'
         stats['std'] = col_data.std()
         stats['q1'] = col_data.quantile(0.25)
         stats['q2'] = col_data.quantile(0.5)
@@ -138,7 +173,6 @@ for col in df.columns:
         stats['skewness'] = skew(col_data.dropna()) if col_data.dropna().size > 0 else None
         stats['kurtosis'] = kurtosis(col_data.dropna()) if col_data.dropna().size > 0 else None
         stats['missing'] = col_data.isnull().sum()
-        # Directional plotting with churn
         plt.figure(figsize=(6,3))
         sns.boxplot(x=df['churned'], y=col_data)
         plt.title(f'{col} vs Churned')
@@ -151,7 +185,7 @@ for col in df.columns:
         m = col_data.mode()
         stats['mean'] = None
         stats['median'] = None
-        stats['mode'] = m.iloc[0] if not m.empty else None
+        stats['mode'] = m.iloc[0] if not m.empty else 'No mode'
         stats['std'] = None
         stats['q1'] = None
         stats['q2'] = None
@@ -163,20 +197,53 @@ for col in df.columns:
         stats['kurtosis'] = None
         stats['unique'] = col_data.nunique()
         stats['missing'] = col_data.isnull().sum()
+        plt.figure(figsize=(7,4))
+        try:
+            sns.countplot(x=col_data, hue=df['churned'])
+            plt.title(f'{col} vs Churned')
+            plt.xlabel(col)
+            plt.ylabel('Count')
+            plt.legend(title='Churned')
+            plt.tight_layout()
+            plt.savefig(f'stats_{col}_vs_churned.png')
+            plt.close()
+        except Exception as e:
+            print(f'Could not plot {col}: {e}')
     summary.append(stats)
 
 summary_df = pd.DataFrame(summary)
-# Reorder columns: mean, median, mode
 cols = summary_df.columns.tolist()
 for colname in ['mean', 'median', 'mode']:
     cols.remove(colname)
 summary_df = summary_df[['feature', 'type', 'mean', 'median', 'mode'] + cols[2:]]
-# Remove the first two rows
 summary_df = summary_df.iloc[2:].reset_index(drop=True)
+
+# Ensure the last 3 features are included in the summary statistics
+for feature in ['area_locality', 'payment_method_preference', 'preferred_delivery_slot', 'loyalty_tier']:
+    if feature not in summary_df['feature'].values:
+        col_data = df[feature]
+        col_type = 'categorical'
+        stats = {'feature': feature, 'type': col_type}
+        m = col_data.mode()
+        stats['mean'] = None
+        stats['median'] = None
+        stats['mode'] = m.iloc[0] if not m.empty else 'No mode'
+        stats['std'] = None
+        stats['q1'] = None
+        stats['q2'] = None
+        stats['q3'] = None
+        stats['q4'] = None
+        stats['p5'] = None
+        stats['p95'] = None
+        stats['skewness'] = None
+        stats['kurtosis'] = None
+        stats['unique'] = col_data.nunique()
+        stats['missing'] = col_data.isnull().sum()
+        summary_df = pd.concat([summary_df, pd.DataFrame([stats])], ignore_index=True)
+
 summary_df.to_excel('feature_summary_statistics.xlsx', index=False)
 print('Summary statistics saved to feature_summary_statistics.xlsx')
 
-# --- Feature Exploration Utility ---
 def explore_feature(feature_name):
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -190,7 +257,6 @@ def explore_feature(feature_name):
         print("Skewness:", col_data.skew())
         print("Kurtosis:", col_data.kurtosis())
     print("Missing:", col_data.isnull().sum())
-    # Plot
     if feature_name != 'churned':
         plt.figure(figsize=(6,3))
         try:
@@ -205,10 +271,4 @@ def explore_feature(feature_name):
     else:
         print("No plot for target variable itself.")
 
-# Example usage:
-# explore_feature(df.columns[0])  # or replace with any feature name
-# explore_feature('avg_order_value')
-
-# Example: Accessing the feature data dictionary for reference
 feature_dict = pd.read_csv('feature_data_dictionary.csv')
-# Now you can use feature_dict as a DataFrame for documentation, mapping, or validation
