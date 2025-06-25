@@ -83,29 +83,9 @@ df['payment_method_preference'] = np.random.choice(['UPI', 'Credit Card', 'Debit
 df['preferred_delivery_slot'] = np.random.choice(['Morning', 'Afternoon', 'Evening', 'Night'], size=n_users)
 df['loyalty_tier'] = np.random.choice(['Membership', 'No Membership'], size=n_users)
 
-columns = [
-    'user_id', 'churned',
-    'avg_order_value', 'total_orders', 'days_since_last_order', 'monthly_spend', 'order_frequency', 'cart_abandon_rate',
-    'coupon_usage_rate', 'refund_count', 'items_per_order', 'total_spend', 'reorder_rate',
-    'app_opens_per_day', 'session_duration_avg', 'days_active_last_30',
-    'pages_visited_per_session', 'search_frequency', 'product_reviews_written',
-    'payment_failures_count', 'support_chats_initiated', 'video_content_viewed', 'feature_usage_score',
-    'age', 'gender', 'income_bracket', 'tenure_months', 'city_tier', 'household_size', 'marital_status',
-    'has_children', 'education_level', 'employment_status', 'owns_vehicle',
-    'avg_time_between_orders', 'days_since_account_creation', 'peak_order_hour', 'weekend_order_ratio',
-    'holiday_purchase_ratio', 'first_purchase_time', 'last_app_open_hour', 'last_login_days_ago',
-    'active_night_user', 'long_gap_before_churn', 'avg_spend_per_minute', 'value_per_order',
-    'engagement_score', 'loyalty_score', 'discount_dependency', 'churn_risk_index', 'social_sharing_index',
-    'mobile_vs_web_ratio', 'complexity_of_orders', 'return_rate_composite',
-    'noise_1', 'noise_2', 'noise_3', 'noise_4',
-    'area_locality', 'payment_method_preference', 'preferred_delivery_slot', 'loyalty_tier'
-]
 df = df[[col for col in columns if col in df.columns]]
-
 feature_names = columns
-
 df.columns = feature_names
-
 
 int_columns = [
     'days_since_last_order', 'total_orders', 'items_per_order', 'refund_count',
