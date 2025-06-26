@@ -1,0 +1,19 @@
+
+===== Iteration 1 =====
+Random Forest Accuracy: 0.9868
+Best Params: {'max_depth': None, 'max_features': 'sqrt', 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 100}
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.98      1.00      0.99      3997
+           1       1.00      0.94      0.97      1003
+
+    accuracy                           0.99      5000
+   macro avg       0.99      0.97      0.98      5000
+weighted avg       0.99      0.99      0.99      5000
+
+Confusion Matrix:
+[[3993    4]
+ [  62  941]]
+========================

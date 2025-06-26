@@ -1,0 +1,18 @@
+
+===== Iteration 1 =====
+Logistic Regression Accuracy: 0.9618
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.98      0.98      0.98      3997
+           1       0.91      0.90      0.90      1003
+
+    accuracy                           0.96      5000
+   macro avg       0.94      0.94      0.94      5000
+weighted avg       0.96      0.96      0.96      5000
+
+Confusion Matrix:
+[[3905   92]
+ [  99  904]]
+========================
